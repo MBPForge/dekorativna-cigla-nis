@@ -384,6 +384,70 @@
     el('redo-btn').disabled = !redoStack.length;
   }
 
+  // ---------- AI prepoznavanje zida (semantička segmentacija u pregledaču) ----------
+  var segmenter = null, segLoading = false;
+  var WALL_LABELS = { wall: 1, building: 1, house: 1 };
+  function aiDetectWall() {
+    if (!state.photo || segLoading) return;
+    var status = el('ai-status');
+    segLoading = true;
+    el('ai-wall').disabled = true;
+    status.textContent = segmenter ? 'AI analizira fotografiju…' : 'Preuzimanje AI modela (prvi put, ~20 MB)…';
+    var run = function () {
+      // fotografiju smanjujemo radi brzine
+      var s = document.createElement('canvas');
+      var sw = 512, sh = Math.round(512 * canvas.height / canvas.width);
+      s.width = sw; s.height = sh;
+      s.getContext('2d').drawImage(state.photo, 0, 0, sw, sh);
+      segmenter(s.toDataURL('image/jpeg', 0.9)).then(function (segments) {
+        var found = false;
+        snapshot();
+        var m = document.createElement('canvas');
+        m.width = sw; m.height = sh;
+        var mg = m.getContext('2d');
+        var out = mg.createImageData(sw, sh);
+        segments.forEach(function (seg) {
+          if (!WALL_LABELS[seg.label]) return;
+          found = true;
+          var md = seg.mask.data;
+          for (var i = 0; i < md.length; i++) {
+            if (md[i] > 128) {
+              var o = i * 4;
+              out.data[o] = 255; out.data[o + 1] = 255; out.data[o + 2] = 255; out.data[o + 3] = 255;
+            }
+          }
+        });
+        if (found) {
+          mg.putImageData(out, 0, 0);
+          maskCtx.clearRect(0, 0, mask.width, mask.height);
+          maskCtx.drawImage(m, 0, 0, mask.width, mask.height);
+          status.textContent = 'Zid je označen — doterajte četkicom ili brisanjem po potrebi.';
+        } else {
+          status.textContent = 'AI nije prepoznao zid na ovoj fotografiji — označite ga štapićem ili četkicom.';
+        }
+        segLoading = false;
+        el('ai-wall').disabled = false;
+        drawPhoto();
+      }).catch(function () {
+        status.textContent = 'AI analiza nije uspela — koristite štapić ili četkicu.';
+        segLoading = false;
+        el('ai-wall').disabled = false;
+      });
+    };
+    if (segmenter) { run(); return; }
+    import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3/+esm').then(function (tf) {
+      return tf.pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512');
+    }).then(function (p) {
+      segmenter = p;
+      status.textContent = 'AI analizira fotografiju…';
+      run();
+    }).catch(function () {
+      status.textContent = 'AI model trenutno nije dostupan — koristite štapić ili četkicu.';
+      segLoading = false;
+      el('ai-wall').disabled = false;
+    });
+  }
+
   // ---------- Čarobni štapić (flood fill) ----------
   function wand(px, py) {
     if (!state.photo) return;
@@ -633,6 +697,7 @@
     el('corners-help').style.display = t === 'corners' ? '' : 'none';
     drawPhoto();
   }
+  el('ai-wall').addEventListener('click', aiDetectWall);
   el('brush-mode').addEventListener('click', function () { setTool('brush'); });
   el('erase-mode').addEventListener('click', function () { setTool('erase'); });
   el('wand-mode').addEventListener('click', function () { setTool('wand'); });
