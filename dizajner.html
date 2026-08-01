@@ -79,16 +79,31 @@
           <p class="designer-note" id="model-name"></p>
         </div>
 
+        <div class="panel reveal" id="panel-render">
+          <h3>Prikaz</h3>
+          <div class="control" style="margin-bottom:6px;">
+            <label style="font-weight:400; display:flex; align-items:center; gap:8px;">
+              <input type="radio" name="render-mode" value="real" checked> Realna foto-tekstura
+            </label>
+            <label style="font-weight:400; display:flex; align-items:center; gap:8px;">
+              <input type="radio" name="render-mode" value="schematic"> Šematski prikaz (sa izborom fuge)
+            </label>
+          </div>
+        </div>
+
         <div class="panel reveal">
           <h3>3. Fuga</h3>
-          <div class="control">
-            <label>Boja fuge</label>
-            <div class="swatch-row" id="fuga-swatches"></div>
+          <div id="panel-fuga-controls" style="opacity:.45;">
+            <div class="control">
+              <label>Boja fuge</label>
+              <div class="swatch-row" id="fuga-swatches"></div>
+            </div>
+            <div class="control">
+              <label for="fuga-w">Debljina fuge: <span id="fuga-w-val">10</span> mm</label>
+              <input type="range" id="fuga-w" min="4" max="18" step="1" value="10">
+            </div>
           </div>
-          <div class="control">
-            <label for="fuga-w">Debljina fuge: <span id="fuga-w-val">10</span> mm</label>
-            <input type="range" id="fuga-w" min="4" max="18" step="1" value="10">
-          </div>
+          <p class="designer-note" id="fuga-note">Izbor fuge je dostupan u šematskom prikazu — kod realne foto-teksture fuga je deo snimljene površine.</p>
         </div>
 
         <div class="panel reveal" id="panel-photo" style="display:none;">
@@ -97,17 +112,43 @@
             📷 Prevucite fotografiju ovde<br>ili kliknite da izaberete
             <input type="file" id="photo-input" accept="image/*" style="display:none;">
           </div>
-          <div class="control" style="margin-top:16px;">
+          <div class="control" style="margin-top:14px;">
+            <label>…ili isprobajte na gotovoj prostoriji:</label>
+            <div class="preset-grid" id="preset-row"></div>
+          </div>
+
+          <div class="control" style="margin-top:6px;">
+            <label>Alat</label>
+            <div class="toolbar" style="justify-content:flex-start; margin-top:4px;">
+              <button class="btn btn-dark" id="brush-mode" type="button">🖌 Četkica</button>
+              <button class="btn btn-light-outline" id="erase-mode" type="button">⌫ Brisanje</button>
+              <button class="btn btn-light-outline" id="wand-mode" type="button">✨ Štapić</button>
+              <button class="btn btn-light-outline" id="corners-mode" type="button">⛶ Uglovi zida</button>
+            </div>
+          </div>
+          <p class="designer-note" id="corners-help" style="display:none;">
+            Kliknite 4 ugla zida redom: gore-levo, gore-desno, dole-desno, dole-levo — cigla će pratiti perspektivu zida.
+            Prevucite tačke da ih doterate. <button class="btn btn-light-outline" id="reset-corners" type="button" style="padding:4px 10px; font-size:.78rem;">Poništi uglove</button>
+          </p>
+          <div class="control" id="tolerance-wrap" style="display:none;">
+            <label for="tolerance">Osetljivost štapića: <span id="tolerance-val">32</span></label>
+            <input type="range" id="tolerance" min="8" max="80" step="2" value="32">
+          </div>
+          <div class="control">
             <label for="brush-size">Veličina četkice: <span id="brush-size-val">40</span> px</label>
             <input type="range" id="brush-size" min="10" max="120" step="2" value="40">
+          </div>
+          <div class="control">
+            <label for="tex-scale">Veličina cigle na fotografiji: <span id="tex-scale-val">100</span>%</label>
+            <input type="range" id="tex-scale" min="40" max="220" step="10" value="100">
           </div>
           <div class="control">
             <label for="overlay-op">Uklapanje sa svetlom fotografije: <span id="overlay-op-val">85</span>%</label>
             <input type="range" id="overlay-op" min="30" max="100" step="5" value="85">
           </div>
           <div class="toolbar" style="justify-content:flex-start;">
-            <button class="btn btn-dark" id="brush-mode" type="button">🖌 Četkica</button>
-            <button class="btn btn-light-outline" id="erase-mode" type="button">⌫ Brisanje</button>
+            <button class="btn btn-light-outline" id="undo-btn" type="button" disabled>↶ Nazad</button>
+            <button class="btn btn-light-outline" id="redo-btn" type="button" disabled>↷ Napred</button>
             <button class="btn btn-light-outline" id="clear-mask" type="button">Očisti sve</button>
           </div>
           <p class="designer-note">Fotografija ostaje samo u vašem pregledaču — ne otprema se ni na kakav server.</p>
@@ -118,8 +159,13 @@
       <div>
         <div class="canvas-wrap reveal">
           <canvas id="studio-canvas" width="900" height="560"></canvas>
+          <div class="control" id="ba-wrap" style="display:none; margin-top:12px; text-align:left;">
+            <label for="ba-slider">Pre / posle — prevucite klizač</label>
+            <input type="range" id="ba-slider" min="0" max="100" step="1" value="100">
+          </div>
           <div class="toolbar">
-            <button class="btn btn-primary" id="download-btn" type="button">⬇ Preuzmite prikaz (PNG)</button>
+            <button class="btn btn-primary" id="download-btn" type="button">⬇ Prikaz (PNG)</button>
+            <button class="btn btn-dark" id="quote-btn" type="button">🖨 Sačuvajte ponudu (PDF)</button>
             <a class="btn btn-light-outline" href="partneri.html#kontakt">Zatražite tačnu ponudu</a>
           </div>
         </div>
@@ -182,6 +228,31 @@
     <span>Napravljeno sa ♥ u Nišu</span>
   </div>
 </footer>
+
+<!-- Štampana ponuda (vidljiva samo pri štampi / čuvanju u PDF) -->
+<div id="print-quote" aria-hidden="true">
+  <div class="pq-head">
+    <div>
+      <div class="pq-brand">Dekorativna Cigla Niš</div>
+      <div class="pq-sub">dizajn i proizvodnja dekorativnih cigli &middot; patentiran autorski dizajn</div>
+    </div>
+    <div class="pq-date">Datum: <span id="pq-date"></span></div>
+  </div>
+  <h1>Okvirna ponuda — vizuelizacija</h1>
+  <img id="pq-img" alt="Prikaz zida">
+  <table class="pq-table">
+    <tr><th>Model cigle</th><td id="pq-model"></td></tr>
+    <tr><th>Dimenzije zida</th><td id="pq-dims"></td></tr>
+    <tr><th>Neto površina</th><td id="pq-area"></td></tr>
+    <tr><th>Broj cigli (sa 10% rezerve)</th><td id="pq-bricks"></td></tr>
+    <tr><th>Pakovanja (1 m²)</th><td id="pq-packs"></td></tr>
+    <tr><th>Okvirna cena materijala</th><td id="pq-price"></td></tr>
+  </table>
+  <p class="pq-note">Ponuda je informativna i odnosi se samo na materijal. Za tačnu ponudu sa isporukom i montažom kontaktirajte nas — besplatno i bez obaveze.</p>
+  <div class="pq-foot">
+    Dekorativna Cigla Niš &middot; Branislava Nušića 6, Trupale, 18211 Niš &middot; +381 61 176 0695 &middot; info@dekorativnaciglanis.ai &middot; dekorativnaciglanis.ai
+  </div>
+</div>
 
 <script src="js/main.js"></script>
 <script src="js/designer.js"></script>

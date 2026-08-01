@@ -382,6 +382,36 @@ article.post li { margin-bottom: 6px; }
 .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; justify-content: center; }
 .toolbar .btn { padding: 9px 18px; font-size: .85rem; }
 
+/* ---------- Dizajner: gotove prostorije ---------- */
+.preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+.preset-thumb {
+  position: relative; height: 64px; border-radius: 10px; border: 2px solid var(--line);
+  background-size: cover; background-position: center; cursor: pointer; overflow: hidden; padding: 0;
+}
+.preset-thumb:hover { border-color: var(--brick); }
+.preset-thumb span {
+  position: absolute; left: 0; right: 0; bottom: 0; font-size: .68rem; font-weight: 600;
+  background: rgba(24,17,13,.65); color: #fff; padding: 3px 6px; text-align: center;
+}
+
+/* ---------- Štampana ponuda ---------- */
+#print-quote { display: none; }
+@media print {
+  body > *:not(#print-quote) { display: none !important; }
+  #print-quote { display: block; font-family: var(--font-body); color: #2b2320; padding: 10mm; }
+  #print-quote .pq-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #b3562e; padding-bottom: 10px; margin-bottom: 16px; }
+  #print-quote .pq-brand { font-family: var(--font-display); font-size: 20pt; font-weight: 700; color: #b3562e; }
+  #print-quote .pq-sub { font-size: 9pt; color: #5c4f47; }
+  #print-quote .pq-date { font-size: 10pt; color: #5c4f47; }
+  #print-quote h1 { font-family: var(--font-display); font-size: 16pt; margin: 0 0 12px; }
+  #print-quote img { max-width: 100%; max-height: 90mm; border-radius: 8px; margin-bottom: 14px; }
+  #print-quote .pq-table { width: 100%; border-collapse: collapse; font-size: 11pt; }
+  #print-quote .pq-table th, #print-quote .pq-table td { text-align: left; padding: 7px 10px; border-bottom: 1px solid #e5d9cd; }
+  #print-quote .pq-table th { width: 45%; color: #5c4f47; font-weight: 600; }
+  #print-quote .pq-note { font-size: 9pt; color: #5c4f47; margin-top: 12px; }
+  #print-quote .pq-foot { margin-top: 18px; padding-top: 10px; border-top: 1px solid #e5d9cd; font-size: 9pt; color: #5c4f47; }
+}
+
 /* ---------- Partneri ---------- */
 .partner-type {
   border-left: 4px solid var(--brick); padding-left: 20px;
