@@ -87,7 +87,7 @@
 
   // ---------- Šematski (proceduralni) tile ----------
   function buildTile(model, fugaColor, fugaPx, scale) {
-    var bw = Math.round(96 * scale), bh = Math.round(22 * scale);
+    var bw = Math.round(96 * scale), bh = Math.round(24 * scale); // 24×6 cm → odnos 4:1
     var f = Math.max(2, Math.round(fugaPx * scale));
     var tileW = (bw + f) * 2, tileH = (bh + f) * 2;
     var t = document.createElement('canvas');
@@ -494,7 +494,7 @@
     var h = parseFloat(el('wall-h').value) || 0;
     var open = parseFloat(el('wall-open').value) || 0;
     var net = Math.max(0, w * h - open);
-    var bricks = Math.ceil(net * 48 * 1.1);
+    var bricks = Math.ceil(net * 57 * 1.1); // ~57 kom/m² (format 24×6 cm, fuga ~1 cm) + 10% rezerve
     var packs = Math.ceil(net * 1.1);
     var price = Math.round(net * state.model.price);
     el('r-area').textContent = net.toFixed(1).replace('.', ',') + ' m²';
