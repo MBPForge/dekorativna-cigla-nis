@@ -41,14 +41,17 @@
   <div class="container">
     <span class="eyebrow">Dizajner studio</span>
     <h1>Vidite ciglu na svom zidu — pre nego što kupite</h1>
-    <p>Unesite mere zida i odmah dobijte prikaz, količinu i okvirnu cenu. Ili otpremite fotografiju svoje prostorije i četkicom nanesite ciglu direktno na svoj zid. Sve radi u vašem pregledaču — fotografije se nigde ne šalju.</p>
+    <p>Unesite mere zida, izaberite model cigle i boju fuge — i odmah dobijte vizuelni prikaz, potrebnu količinu i okvirnu cenu. Sve radi u vašem pregledaču.</p>
   </div>
 </section>
 
 <section class="section">
   <div class="container">
 
-    <div class="mode-tabs reveal">
+    <!-- "Vaša fotografija" (foto režim) je privremeno sakriven dok se ne doradi.
+         Ceo kod ostaje u repou — da vratite režim, uklonite style="display:none".
+         Dugmad ostaju u DOM-u da skript nastavi da radi. -->
+    <div class="mode-tabs reveal" style="display:none;">
       <button id="tab-wall" class="active" type="button">🧱 Simulacija zida</button>
       <button id="tab-photo" type="button">📷 Vaša fotografija</button>
     </div>
