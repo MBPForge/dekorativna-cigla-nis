@@ -33,6 +33,32 @@
   var y = document.getElementById('year');
   if (y) y.textContent = new Date().getFullYear();
 
+  // Lightbox za slike inspiracije (elementi sa data-lightbox atributom)
+  var lb = null;
+  function openLightbox(src, caption) {
+    if (!lb) {
+      lb = document.createElement('div');
+      lb.className = 'lightbox';
+      lb.innerHTML = '<button class="lb-close" aria-label="Zatvori">×</button>' +
+        '<figure><img alt=""><figcaption></figcaption>' +
+        '<div class="lb-note">Ilustrativni prikaz primene — stvarne modele pogledajte u katalogu.</div></figure>';
+      document.body.appendChild(lb);
+      lb.addEventListener('click', function (e) {
+        if (e.target !== lb.querySelector('figcaption')) lb.classList.remove('open');
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') lb.classList.remove('open');
+      });
+    }
+    lb.querySelector('img').src = src;
+    lb.querySelector('figcaption').textContent = caption || '';
+    lb.classList.add('open');
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-lightbox]');
+    if (t) { e.preventDefault(); openLightbox(t.getAttribute('data-lightbox'), t.getAttribute('data-caption')); }
+  });
+
   // Kontakt forma: na hostingu bez form-backenda (npr. Vercel) šaljemo upit mejlom
   var form = document.querySelector('form[name="kontakt"]');
   if (form && location.hostname.indexOf('netlify') === -1) {
