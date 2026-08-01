@@ -96,17 +96,15 @@
 
         <div class="panel reveal">
           <h3>3. Fuga</h3>
-          <div id="panel-fuga-controls" style="opacity:.45;">
-            <div class="control">
-              <label>Boja fuge</label>
-              <div class="swatch-row" id="fuga-swatches"></div>
-            </div>
-            <div class="control">
-              <label for="fuga-w">Debljina fuge: <span id="fuga-w-val">10</span> mm</label>
-              <input type="range" id="fuga-w" min="4" max="18" step="1" value="10">
-            </div>
+          <div class="control">
+            <label>Boja fuge</label>
+            <div class="swatch-row" id="fuga-swatches"></div>
           </div>
-          <p class="designer-note" id="fuga-note">Izbor fuge je dostupan u šematskom prikazu — kod realne foto-teksture fuga je deo snimljene površine.</p>
+          <div class="control" id="fuga-w-wrap" style="opacity:.45;">
+            <label for="fuga-w">Debljina fuge: <span id="fuga-w-val">10</span> mm</label>
+            <input type="range" id="fuga-w" min="4" max="18" step="1" value="10">
+          </div>
+          <p class="designer-note" id="fuga-note">Boja fuge radi u oba prikaza. Debljina fuge se podešava u šematskom prikazu — kod realne foto-teksture debljina je deo snimljene površine.</p>
         </div>
 
         <div class="panel reveal" id="panel-photo" style="display:none;">

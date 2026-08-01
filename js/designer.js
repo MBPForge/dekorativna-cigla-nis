@@ -59,11 +59,15 @@
   var undoStack = [], redoStack = [];
 
   // ---------- Teksture (mirror-tile za bešavno ponavljanje) ----------
-  var texCache = {};   // id -> {img, tile}
-  function getTexture(model, onReady) {
-    var c = texCache[model.id];
+  // Svaka kombinacija modela i boje fuge ima svoju foto-teksturu:
+  // img/tex-{model}-{fuga}.webp  (npr. tex-rustik-bela.webp)
+  var texCache = {};   // "model-fuga" -> {img, tile}
+  function texUrl(model, fuga) { return 'img/tex-' + model.id + '-' + fuga.id + '.webp'; }
+  function getTexture(model, fuga, onReady) {
+    var key = model.id + '-' + fuga.id;
+    var c = texCache[key];
     if (c) { if (c.tile) return c; if (onReady) c.cbs.push(onReady); return null; }
-    c = texCache[model.id] = { img: null, tile: null, cbs: onReady ? [onReady] : [] };
+    c = texCache[key] = { img: null, tile: null, cbs: onReady ? [onReady] : [] };
     var img = new Image();
     img.onload = function () {
       c.img = img;
@@ -79,7 +83,7 @@
       c.cbs = [];
     };
     img.onerror = function () { c.failed = true; };
-    img.src = model.tex;
+    img.src = texUrl(model, fuga);
     return null;
   }
 
@@ -128,7 +132,7 @@
     var pxPerM = cw / w;
 
     if (state.render === 'real') {
-      var tex = getTexture(state.model, redraw);
+      var tex = getTexture(state.model, state.fuga, redraw);
       if (tex) {
         var s = pxPerM * state.model.texMeters / tex.img.width;
         var pat = ctx.createPattern(tex.tile, 'repeat');
@@ -236,7 +240,7 @@
     var w = canvas.width, h = canvas.height;
     ctx.drawImage(state.photo, 0, 0, w, h);
 
-    var tex = getTexture(state.model, redraw);
+    var tex = getTexture(state.model, state.fuga, redraw);
     var brickLayer = document.createElement('canvas');
     brickLayer.width = w; brickLayer.height = h;
     var bg = brickLayer.getContext('2d');
@@ -630,9 +634,10 @@
     b.type = 'button'; b.title = m.name; b.setAttribute('aria-label', m.name);
     b.style.background = 'linear-gradient(135deg, ' + m.bricks[0] + ' 50%, ' + m.bricks[3] + ' 50%)';
     b.style.backgroundSize = 'cover';
+    var thumb = texUrl(m, FUGAS[0]);
     var probe = new Image();
-    probe.onload = function () { b.style.background = 'url(' + m.tex + ') center/cover'; };
-    probe.src = m.tex;
+    probe.onload = function () { b.style.background = 'url(' + thumb + ') center/cover'; };
+    probe.src = thumb;
     b.addEventListener('click', function () {
       state.model = m;
       modelRow.querySelectorAll('.swatch').forEach(function (s) { s.classList.remove('selected'); });
@@ -644,8 +649,8 @@
   });
   el('model-name').textContent = 'Izabrano: ' + MODELS[0].name + ' — oko ' + MODELS[0].price.toLocaleString('sr-RS') + ' RSD/m²';
 
-  // Podešavanje fuge ima smisla samo u šematskom prikazu — čim korisnik pipne fugu,
-  // prebacujemo prikaz na šematski da ODMAH vidi promenu.
+  // Debljina fuge se vidi samo u šematskom prikazu (kod foto-teksture je debljina snimljena).
+  // Boja fuge, međutim, RADI i u realnom prikazu — učitava odgovarajuću foto-teksturu.
   function ensureSchematic() {
     if (state.render === 'schematic') return;
     var radio = document.querySelector('input[name="render-mode"][value="schematic"]');
@@ -662,8 +667,7 @@
       state.fuga = f;
       fugaRow.querySelectorAll('.swatch').forEach(function (s) { s.classList.remove('selected'); });
       b.classList.add('selected');
-      ensureSchematic();
-      redraw();
+      redraw(); // boja fuge radi i u realnom i u šematskom prikazu
     });
     fugaRow.appendChild(b);
   });
@@ -714,7 +718,8 @@
   document.querySelectorAll('input[name="render-mode"]').forEach(function (r) {
     r.addEventListener('change', function () {
       state.render = r.value;
-      el('panel-fuga-controls').style.opacity = (state.render === 'real') ? '.45' : '1';
+      // Boja fuge je uvek aktivna; samo debljina fuge zavisi od šematskog prikaza.
+      el('fuga-w-wrap').style.opacity = (state.render === 'real') ? '.45' : '1';
       el('fuga-note').style.display = (state.render === 'real') ? '' : 'none';
       redraw();
     });
