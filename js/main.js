@@ -1,4 +1,4 @@
-// Dekorativna Cigla Niš — zajednički skript
+﻿// Dekorativna Cigla Niš — zajednički skript
 (function () {
   // Mobilna navigacija
   var toggle = document.querySelector('.nav-toggle');
@@ -67,7 +67,7 @@
       var v = function (n) { return (form.elements[n] && form.elements[n].value || '').trim(); };
       var body = 'Ime: ' + v('ime') + '\nFirma: ' + v('firma') + '\nEmail: ' + v('email') +
         '\nTelefon: ' + v('telefon') + '\nJavljam se kao: ' + v('tip') + '\n\n' + v('poruka');
-      location.href = 'mailto:info@dekorativnacigla.rs' +
+      location.href = 'mailto:info@dekorativnacigla.ai' +
         '?subject=' + encodeURIComponent('Upit sa sajta — ' + v('tip')) +
         '&body=' + encodeURIComponent(body);
       setTimeout(function () { location.href = 'hvala.html'; }, 800);

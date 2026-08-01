@@ -23,7 +23,7 @@ Runs 100% client-side (photos never leave the browser):
 - 7 brick models × 4 grout colors × adjustable grout width.
 
 ## Placeholders to replace before launch
-- Phone `+381 60 000 0000` and email `info@dekorativnacigla.rs` (in header/footer of every page — search & replace).
+- ~~Phone and email~~ — done: +381 61 176 0695 / info@dekorativnacigla.ai / Branislava Nušića 6, Trupale, 18211 Niš.
 - Prices in `js/designer.js` (`MODELS[].price`, RSD/m²) and consumption (48 pcs/m²).
 - Portfolio/catalogue SVG illustrations → real photos when available (swap `.card-media` contents for `<img>`).
 - Testimonials are sample copy — replace with real ones.
