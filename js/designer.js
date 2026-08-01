@@ -21,6 +21,22 @@
     { id: 'siva',  name: 'Siva',          color: '#a8a29a' },
     { id: 'tamna', name: 'Antracit',      color: '#4a4540' }
   ];
+  // Po-teksturna kalibracija veličine cigle: svaka foto-tekstura ima različit broj
+  // redova cigala, pa se skala računa iz izmerene visine reda (autokorelacija),
+  // usidreno na tex-rustik-pesak = 2,35 m. Tako cigla ima ISTU veličinu u svih 28 tekstura.
+  var TEX_METERS = {
+    "tex-antik-bela": 2.291, "tex-antik-pesak": 1.95, "tex-antik-siva": 1.95, "tex-antik-tamna": 1.608,
+    "tex-braon-bela": 1.637, "tex-braon-pesak": 1.833, "tex-braon-siva": 2.131, "tex-braon-tamna": 2.619,
+    "tex-krem-bela": 1.608, "tex-krem-pesak": 2.477, "tex-krem-siva": 2.777, "tex-krem-tamna": 2.131,
+    "tex-noir-bela": 1.992, "tex-noir-pesak": 1.95, "tex-noir-siva": 2.131, "tex-noir-tamna": 3.055,
+    "tex-rustik-bela": 2.477, "tex-rustik-pesak": 2.35, "tex-rustik-siva": 2.864, "tex-rustik-tamna": 1.833,
+    "tex-terakota-bela": 1.87, "tex-terakota-pesak": 2.131, "tex-terakota-siva": 1.992, "tex-terakota-tamna": 1.992,
+    "tex-urban-bela": 2.696, "tex-urban-pesak": 2.35, "tex-urban-siva": 2.182, "tex-urban-tamna": 2.477
+  };
+  function texMetersFor(model, fuga) {
+    return TEX_METERS['tex-' + model.id + '-' + fuga.id] || model.texMeters;
+  }
+
   var PHOTO_WALL_M = 4; // pretpostavljena širina prizora na fotografiji (koriguje se klizačem)
   var PRESETS = [
     { file: 'img/soba-dnevna.webp',  label: 'Dnevna soba' },
@@ -134,7 +150,7 @@
     if (state.render === 'real') {
       var tex = getTexture(state.model, state.fuga, redraw);
       if (tex) {
-        var s = pxPerM * state.model.texMeters / tex.img.width;
+        var s = pxPerM * texMetersFor(state.model, state.fuga) / tex.img.width;
         var pat = ctx.createPattern(tex.tile, 'repeat');
         if (pat.setTransform) pat.setTransform(new DOMMatrix().scale(s));
         ctx.fillStyle = pat;
@@ -248,7 +264,7 @@
     var useTex = state.render === 'real' && tex;
     var tileImg = useTex ? tex.tile : buildTile(state.model, state.fuga.color, state.fugaMm, 0.5);
     var texW = useTex ? tex.img.width : tileImg.width;
-    var texM = useTex ? state.model.texMeters : 0.5; // šematski tile = 2 cigle ≈ 0,5 m
+    var texM = useTex ? texMetersFor(state.model, state.fuga) : 0.5; // šematski tile = 2 cigle ≈ 0,5 m
     // fizička kalibracija: pretpostavljamo da fotografija prikazuje ~4 m širine prizora
     var pxPerM2 = w / PHOTO_WALL_M;
     var baseScale = pxPerM2 * texM / texW * state.texScale;
