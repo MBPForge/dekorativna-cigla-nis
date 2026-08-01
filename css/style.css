@@ -249,7 +249,7 @@ article.post li { margin-bottom: 6px; }
   display: flex; gap: 14px; align-items: center;
 }
 .tip-mascot {
-  width: 48px; height: 64px; object-fit: cover; object-position: top;
+  width: 48px; height: 64px; object-fit: cover; object-position: 50% 30%;
   border-radius: 10px; flex: none; box-shadow: var(--shadow);
 }
 
@@ -261,14 +261,14 @@ article.post li { margin-bottom: 6px; }
   transition: transform .25s ease;
 }
 .mascot-figure:hover { transform: rotate(0deg) scale(1.02); }
-.mascot-figure img { border-radius: 14px; width: 100%; }
+.mascot-figure img { border-radius: 14px; width: 100%; height: auto; }
 .mascot-badge {
   display: inline-flex; align-items: center; gap: 10px;
   background: var(--clay); border-radius: 99px; padding: 6px 16px 6px 6px;
   font-size: .85rem; font-weight: 600; color: var(--brick-dark);
 }
 .mascot-badge img {
-  width: 34px; height: 34px; object-fit: cover; object-position: top;
+  width: 34px; height: 34px; object-fit: cover; object-position: 50% 38%;
   border-radius: 50%;
 }
 
