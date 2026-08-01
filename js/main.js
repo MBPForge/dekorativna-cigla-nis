@@ -67,7 +67,7 @@
       var v = function (n) { return (form.elements[n] && form.elements[n].value || '').trim(); };
       var body = 'Ime: ' + v('ime') + '\nFirma: ' + v('firma') + '\nEmail: ' + v('email') +
         '\nTelefon: ' + v('telefon') + '\nJavljam se kao: ' + v('tip') + '\n\n' + v('poruka');
-      location.href = 'mailto:info@dekorativnacigla.ai' +
+      location.href = 'mailto:info@dekorativnaciglanis.ai' +
         '?subject=' + encodeURIComponent('Upit sa sajta — ' + v('tip')) +
         '&body=' + encodeURIComponent(body);
       setTimeout(function () { location.href = 'hvala.html'; }, 800);

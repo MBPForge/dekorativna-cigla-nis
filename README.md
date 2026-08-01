@@ -1,4 +1,4 @@
-# Dekorativna Cigla Niš — website
+﻿# Dekorativna Cigla Niš — website
 
 Static marketing site for Dekorativna Cigla Niš (decorative plaster-mixture bricks, interior & exterior — own patented designs, own production).
 
@@ -23,7 +23,7 @@ Runs 100% client-side (photos never leave the browser):
 - 7 brick models × 4 grout colors × adjustable grout width.
 
 ## Placeholders to replace before launch
-- ~~Phone and email~~ — done: +381 61 176 0695 / info@dekorativnacigla.ai / Branislava Nušića 6, Trupale, 18211 Niš.
+- ~~Phone and email~~ — done: +381 61 176 0695 / info@dekorativnaciglanis.ai / Branislava Nušića 6, Trupale, 18211 Niš.
 - Prices in `js/designer.js` (`MODELS[].price`, RSD/m²) and consumption (48 pcs/m²).
 - Portfolio/catalogue SVG illustrations → real photos when available (swap `.card-media` contents for `<img>`).
 - Testimonials are sample copy — replace with real ones.
