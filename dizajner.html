@@ -118,8 +118,11 @@
           </div>
 
           <div class="control" style="margin-top:6px;">
-            <button class="btn btn-primary" id="ai-wall" type="button" style="width:100%;">🤖 Automatski označi zid (AI)</button>
-            <p class="designer-note" id="ai-status" style="margin-top:6px;">AI prepoznaje zid i preskače nameštaj, lampe i ostale objekte. Radi u vašem pregledaču.</p>
+            <button class="btn btn-primary ciglic-btn" id="ai-wall" type="button">
+              <img src="img/ciglic.webp" alt="Ciglić" class="ciglic-btn-img">
+              Automatski označi zid (Ciglić)
+            </button>
+            <p class="designer-note" id="ai-status" style="margin-top:6px;">Ciglić prepoznaje zid i preskače nameštaj, lampe i ostale objekte. Sve radi u vašem pregledaču.</p>
           </div>
           <div class="control" style="margin-top:6px;">
             <label>Ručno doterivanje</label>
@@ -131,8 +134,9 @@
             </div>
           </div>
           <p class="designer-note" id="corners-help" style="display:none;">
-            Kliknite 4 ugla zida redom: gore-levo, gore-desno, dole-desno, dole-levo — cigla će pratiti perspektivu zida.
-            Prevucite tačke da ih doterate. <button class="btn btn-light-outline" id="reset-corners" type="button" style="padding:4px 10px; font-size:.78rem;">Poništi uglove</button>
+            Kliknite 4 ugla zida (bilo kojim redom) — čim postavite četvrti, cigla se odmah nanosi na
+            označeni deo i prati perspektivu zida. Prevucite tačke da ih doterate.
+            <button class="btn btn-light-outline" id="reset-corners" type="button" style="padding:4px 10px; font-size:.78rem;">Poništi uglove</button>
           </p>
           <div class="control" id="smart-wrap">
             <label style="font-weight:400; display:flex; align-items:center; gap:8px;">

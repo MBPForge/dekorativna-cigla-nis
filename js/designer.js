@@ -48,6 +48,7 @@
   };
   var photoData = null;      // pikseli fotografije (za pametnu četkicu / štapić)
   var gradMap = null;        // mapa ivica (za štapić koji staje na ivicama objekata)
+  var aiMask = null;         // Ciglićeva maska zida — sve slikanje se ograničava na nju
 
   var canvas = document.getElementById('studio-canvas');
   if (!canvas) return;
@@ -325,7 +326,7 @@
     maskCtx.clearRect(0, 0, cw, ch);
     undoStack = []; redoStack = []; updateUndoButtons();
     // keširaj piksele i mapu ivica za pametne alate
-    photoData = null; gradMap = null;
+    photoData = null; gradMap = null; aiMask = null;
     try {
       var ref = document.createElement('canvas');
       ref.width = cw; ref.height = ch;
@@ -392,7 +393,7 @@
     var status = el('ai-status');
     segLoading = true;
     el('ai-wall').disabled = true;
-    status.textContent = segmenter ? 'AI analizira fotografiju…' : 'Preuzimanje AI modela (prvi put, ~20 MB)…';
+    status.textContent = segmenter ? 'Ciglić analizira fotografiju…' : 'Ciglić se sprema (prvi put preuzima ~20 MB)…';
     var run = function () {
       // fotografiju smanjujemo radi brzine
       var s = document.createElement('canvas');
@@ -419,17 +420,21 @@
         });
         if (found) {
           mg.putImageData(out, 0, 0);
+          // zapamti Ciglićevu masku zida — od sada se svako slikanje drži zida
+          aiMask = document.createElement('canvas');
+          aiMask.width = mask.width; aiMask.height = mask.height;
+          aiMask.getContext('2d').drawImage(m, 0, 0, mask.width, mask.height);
           maskCtx.clearRect(0, 0, mask.width, mask.height);
-          maskCtx.drawImage(m, 0, 0, mask.width, mask.height);
-          status.textContent = 'Zid je označen — doterajte četkicom ili brisanjem po potrebi.';
+          maskCtx.drawImage(aiMask, 0, 0);
+          status.textContent = 'Ciglić je označio zid! Od sada četkica i uglovi rade samo po zidu. Doterajte po potrebi.';
         } else {
-          status.textContent = 'AI nije prepoznao zid na ovoj fotografiji — označite ga štapićem ili četkicom.';
+          status.textContent = 'Ciglić nije prepoznao zid na ovoj fotografiji — označite ga štapićem ili četkicom.';
         }
         segLoading = false;
         el('ai-wall').disabled = false;
         drawPhoto();
       }).catch(function () {
-        status.textContent = 'AI analiza nije uspela — koristite štapić ili četkicu.';
+        status.textContent = 'Ciglićeva analiza nije uspela — koristite štapić ili četkicu.';
         segLoading = false;
         el('ai-wall').disabled = false;
       });
@@ -439,10 +444,10 @@
       return tf.pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512');
     }).then(function (p) {
       segmenter = p;
-      status.textContent = 'AI analizira fotografiju…';
+      status.textContent = 'Ciglić analizira fotografiju…';
       run();
     }).catch(function () {
-      status.textContent = 'AI model trenutno nije dostupan — koristite štapić ili četkicu.';
+      status.textContent = 'Ciglić trenutno nije dostupan — koristite štapić ili četkicu.';
       segLoading = false;
       el('ai-wall').disabled = false;
     });
@@ -498,6 +503,28 @@
     el('r-price').textContent = net > 0 ? '~' + price.toLocaleString('sr-RS') + ' RSD' : '—';
   }
 
+  // Kad Ciglić zna gde je zid, sve što se naslika ograničava se na zid —
+  // cigla ne može da završi na nameštaju čak ni kad potez pređe preko njega.
+  function clipToWall() {
+    if (!aiMask) return;
+    maskCtx.globalCompositeOperation = 'destination-in';
+    maskCtx.drawImage(aiMask, 0, 0);
+    maskCtx.globalCompositeOperation = 'source-over';
+  }
+
+  // Kad su 4 ugla postavljena, označeni deo zida odmah dobija ciglu
+  function fillQuadMask() {
+    if (!state.quad || state.quad.length !== 4) return;
+    maskCtx.globalCompositeOperation = 'source-over';
+    maskCtx.fillStyle = '#fff';
+    maskCtx.beginPath();
+    maskCtx.moveTo(state.quad[0].x, state.quad[0].y);
+    for (var i = 1; i < 4; i++) maskCtx.lineTo(state.quad[i].x, state.quad[i].y);
+    maskCtx.closePath();
+    maskCtx.fill();
+    clipToWall();
+  }
+
   // ---------- Crtanje ----------
   var painting = false;
   function canvasPos(e) {
@@ -531,6 +558,7 @@
         }
       }
       maskCtx.putImageData(region, x0, y0);
+      clipToWall();
       return;
     }
     maskCtx.globalCompositeOperation = erase ? 'destination-out' : 'source-over';
@@ -538,6 +566,7 @@
     maskCtx.beginPath();
     maskCtx.arc(p.x, p.y, state.brush, 0, Math.PI * 2);
     maskCtx.fill();
+    if (!erase) clipToWall();
   }
   canvas.addEventListener('pointerdown', function (e) {
     if (state.mode !== 'photo' || !state.photo) return;
@@ -552,12 +581,16 @@
       if (!state.quad) state.quad = [];
       if (state.quad.length < 4) {
         state.quad.push(p);
-        if (state.quad.length === 4) state.quad = normalizeQuad(state.quad);
+        if (state.quad.length === 4) {
+          state.quad = normalizeQuad(state.quad);
+          snapshot();
+          fillQuadMask();
+        }
         drawPhoto();
       }
       return;
     }
-    if (state.tool === 'wand') { snapshot(); wand(p.x, p.y); drawPhoto(); return; }
+    if (state.tool === 'wand') { snapshot(); wand(p.x, p.y); clipToWall(); drawPhoto(); return; }
     // uzorkuj boju zida na početku poteza (za pametnu četkicu)
     if (photoData) {
       var si = (Math.round(p.y) * mask.width + Math.round(p.x)) * 4;
@@ -575,6 +608,7 @@
     painting = false;
     if (state.dragIdx >= 0 && state.quad && state.quad.length === 4) {
       state.quad = normalizeQuad(state.quad);
+      fillQuadMask();
       drawPhoto();
     }
     state.dragIdx = -1;

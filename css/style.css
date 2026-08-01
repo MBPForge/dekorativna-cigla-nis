@@ -382,6 +382,15 @@ article.post li { margin-bottom: 6px; }
 .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; justify-content: center; }
 .toolbar .btn { padding: 9px 18px; font-size: .85rem; }
 
+/* ---------- Dizajner: Ciglić dugme ---------- */
+.ciglic-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.ciglic-btn-img {
+  width: 28px; height: 28px; border-radius: 50%; flex: none;
+  object-fit: cover; object-position: 50% 38%;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.7);
+}
+.ciglic-btn:disabled { opacity: .6; cursor: wait; transform: none; }
+
 /* ---------- Dizajner: gotove prostorije ---------- */
 .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
 .preset-thumb {
