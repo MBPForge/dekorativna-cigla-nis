@@ -4,14 +4,16 @@
   'use strict';
 
   // ---------- Modeli ----------
+  // texMeters: koliko metara zida (po širini) pokriva tekstura — kalibrisano prebrojavanjem
+  // redova cigala na svakoj fotografiji, da cigla od 24 cm bude iste veličine u svim modelima.
   var MODELS = [
-    { id: 'rustik',   name: 'Rustik Crvena',    price: 2400, tex: 'img/tex-rustik.webp',   bricks: ['#b3562e', '#a54f2b', '#ad5230', '#b85a33', '#9c4a26', '#c06238'] },
-    { id: 'antik',    name: 'Antik Bela',       price: 2400, tex: 'img/tex-antik.webp',    bricks: ['#f2ece2', '#e8e0d3', '#efe8dc', '#f5efe6', '#e4dccf', '#ece3d5'] },
-    { id: 'urban',    name: 'Urban Siva',       price: 2400, tex: 'img/tex-urban.webp',    bricks: ['#6e6a66', '#7d7873', '#666260', '#87817b', '#5e5a57', '#75706b'] },
-    { id: 'krem',     name: 'Krem Pastel',      price: 2400, tex: 'img/tex-krem.webp',     bricks: ['#e0cdbc', '#d6c1ae', '#dbc7b5', '#e5d3c2', '#d1bca9', '#e8d7c7'] },
-    { id: 'noir',     name: 'Noir Antracit',    price: 2600, tex: 'img/tex-noir.webp',     bricks: ['#1e1a17', '#2b2622', '#26211d', '#332d28', '#1a1613', '#38322c'] },
-    { id: 'braon',    name: 'Braon Klasik (fasadna)', price: 2900, tex: 'img/tex-braon.webp', bricks: ['#8a5a3b', '#7d5136', '#936043', '#84573a', '#75492f', '#9a6847'] },
-    { id: 'terakota', name: 'Terakota Intenziv (fasadna)', price: 2900, tex: 'img/tex-terakota.webp', bricks: ['#c9401f', '#b53a1e', '#d04a26', '#bd3d20', '#a83619', '#d6522d'] }
+    { id: 'rustik',   name: 'Rustik Crvena',    price: 2400, tex: 'img/tex-rustik.webp',   texMeters: 2.35, bricks: ['#b3562e', '#a54f2b', '#ad5230', '#b85a33', '#9c4a26', '#c06238'] },
+    { id: 'antik',    name: 'Antik Bela',       price: 2400, tex: 'img/tex-antik.webp',    texMeters: 1.37, bricks: ['#f2ece2', '#e8e0d3', '#efe8dc', '#f5efe6', '#e4dccf', '#ece3d5'] },
+    { id: 'urban',    name: 'Urban Siva',       price: 2400, tex: 'img/tex-urban.webp',    texMeters: 1.66, bricks: ['#6e6a66', '#7d7873', '#666260', '#87817b', '#5e5a57', '#75706b'] },
+    { id: 'krem',     name: 'Krem Pastel',      price: 2400, tex: 'img/tex-krem.webp',     texMeters: 1.85, bricks: ['#e0cdbc', '#d6c1ae', '#dbc7b5', '#e5d3c2', '#d1bca9', '#e8d7c7'] },
+    { id: 'noir',     name: 'Noir Antracit',    price: 2600, tex: 'img/tex-noir.webp',     texMeters: 1.27, bricks: ['#1e1a17', '#2b2622', '#26211d', '#332d28', '#1a1613', '#38322c'] },
+    { id: 'braon',    name: 'Braon Klasik (fasadna)', price: 2900, tex: 'img/tex-braon.webp', texMeters: 1.56, bricks: ['#8a5a3b', '#7d5136', '#936043', '#84573a', '#75492f', '#9a6847'] },
+    { id: 'terakota', name: 'Terakota Intenziv (fasadna)', price: 2900, tex: 'img/tex-terakota.webp', texMeters: 1.07, bricks: ['#c9401f', '#b53a1e', '#d04a26', '#bd3d20', '#a83619', '#d6522d'] }
   ];
   var FUGAS = [
     { id: 'pesak', name: 'Peskirana bež', color: '#d9cfc4' },
@@ -19,14 +21,13 @@
     { id: 'siva',  name: 'Siva',          color: '#a8a29a' },
     { id: 'tamna', name: 'Antracit',      color: '#4a4540' }
   ];
+  var PHOTO_WALL_M = 4; // pretpostavljena širina prizora na fotografiji (koriguje se klizačem)
   var PRESETS = [
     { file: 'img/soba-dnevna.webp',  label: 'Dnevna soba' },
     { file: 'img/soba-spavaca.webp', label: 'Spavaća soba' },
     { file: 'img/soba-kafic.webp',   label: 'Kafić' },
     { file: 'img/soba-fasada.webp',  label: 'Fasada' }
   ];
-  var TEX_REAL_W = 1.2; // pretpostavka: tekstura pokriva ~1,2 m širine zida
-
   var state = {
     mode: 'wall',            // 'wall' | 'photo'
     render: 'real',          // 'real' | 'schematic' (samo wall mod)
@@ -124,7 +125,7 @@
     if (state.render === 'real') {
       var tex = getTexture(state.model, redraw);
       if (tex) {
-        var s = pxPerM * TEX_REAL_W / tex.img.width;
+        var s = pxPerM * state.model.texMeters / tex.img.width;
         var pat = ctx.createPattern(tex.tile, 'repeat');
         if (pat.setTransform) pat.setTransform(new DOMMatrix().scale(s));
         ctx.fillStyle = pat;
@@ -143,6 +144,22 @@
     grad.addColorStop(0, 'rgba(0,0,0,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.18)');
     ctx.fillStyle = grad; ctx.fillRect(0, 0, cw, ch);
     updateResults();
+  }
+
+  // Redosled klikova ne sme da menja smer cigle: tačke uvek sortiramo u TL,TR,BR,BL
+  function normalizeQuad(q) {
+    if (!q || q.length !== 4) return q;
+    var pts = q.slice();
+    function take(score) {
+      var best = 0;
+      for (var i = 1; i < pts.length; i++) if (score(pts[i]) > score(pts[best])) best = i;
+      return pts.splice(best, 1)[0];
+    }
+    var tl = take(function (p) { return -(p.x + p.y); });
+    var br = take(function (p) { return p.x + p.y; });
+    var tr = take(function (p) { return p.x - p.y; });
+    var bl = pts[0];
+    return [tl, tr, br, bl];
   }
 
   // ---------- Homografija: jedinični kvadrat -> quad ----------
@@ -221,16 +238,21 @@
 
     var tileImg = tex ? tex.tile : buildTile(state.model, state.fuga.color, state.fugaMm, 0.5);
     var texW = tex ? tex.img.width : tileImg.width;
-    var baseScale = (w / 6) / texW * state.texScale * 2; // tekstura ~ šestina širine slike, x2 zbog mirror-tile
+    // fizička kalibracija: pretpostavljamo da fotografija prikazuje ~4 m širine prizora
+    var pxPerM2 = w / PHOTO_WALL_M;
+    var baseScale = pxPerM2 * state.model.texMeters / texW * state.texScale;
 
     if (state.quad && state.quad.length === 4) {
+      var q = state.quad;
       var flat = document.createElement('canvas');
       flat.width = 1200; flat.height = 900;
       var fg = flat.getContext('2d');
+      // veličina cigle u flat prostoru tako da posle preslikavanja na quad ostane fizički tačna
+      var avgW = (Math.hypot(q[1].x - q[0].x, q[1].y - q[0].y) + Math.hypot(q[2].x - q[3].x, q[2].y - q[3].y)) / 2 || 1;
       var pat = fg.createPattern(tileImg, 'repeat');
-      if (pat.setTransform) pat.setTransform(new DOMMatrix().scale(baseScale * 1.4));
+      if (pat.setTransform) pat.setTransform(new DOMMatrix().scale(baseScale * flat.width / avgW));
       fg.fillStyle = pat; fg.fillRect(0, 0, flat.width, flat.height);
-      warpToQuad(bg, flat, state.quad);
+      warpToQuad(bg, flat, q);
     } else {
       var pat2 = bg.createPattern(tileImg, 'repeat');
       if (pat2.setTransform) pat2.setTransform(new DOMMatrix().scale(baseScale));
@@ -410,7 +432,11 @@
         }
       }
       if (!state.quad) state.quad = [];
-      if (state.quad.length < 4) { state.quad.push(p); drawPhoto(); }
+      if (state.quad.length < 4) {
+        state.quad.push(p);
+        if (state.quad.length === 4) state.quad = normalizeQuad(state.quad);
+        drawPhoto();
+      }
       return;
     }
     if (state.tool === 'wand') { snapshot(); wand(p.x, p.y); drawPhoto(); return; }
@@ -422,7 +448,14 @@
     if (state.dragIdx >= 0) { state.quad[state.dragIdx] = p; drawPhoto(); return; }
     if (painting) { paint(p); drawPhoto(); }
   });
-  window.addEventListener('pointerup', function () { painting = false; state.dragIdx = -1; });
+  window.addEventListener('pointerup', function () {
+    painting = false;
+    if (state.dragIdx >= 0 && state.quad && state.quad.length === 4) {
+      state.quad = normalizeQuad(state.quad);
+      drawPhoto();
+    }
+    state.dragIdx = -1;
+  });
   canvas.addEventListener('touchmove', function (e) { if (painting || state.dragIdx >= 0) e.preventDefault(); }, { passive: false });
 
   document.addEventListener('keydown', function (e) {
