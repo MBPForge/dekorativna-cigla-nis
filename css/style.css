@@ -246,6 +246,30 @@ article.post li { margin-bottom: 6px; }
   background: var(--clay); border-left: 4px solid var(--brick);
   padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 16px 0;
   font-size: .93rem;
+  display: flex; gap: 14px; align-items: center;
+}
+.tip-mascot {
+  width: 48px; height: 64px; object-fit: cover; object-position: top;
+  border-radius: 10px; flex: none; box-shadow: var(--shadow);
+}
+
+/* ---------- Ciglić maskota ---------- */
+.mascot-section { overflow: hidden; }
+.mascot-figure {
+  background: #f5efe3; border-radius: 20px; box-shadow: var(--shadow-lg);
+  padding: 10px; max-width: 340px; margin: 0 auto; transform: rotate(-2deg);
+  transition: transform .25s ease;
+}
+.mascot-figure:hover { transform: rotate(0deg) scale(1.02); }
+.mascot-figure img { border-radius: 14px; width: 100%; }
+.mascot-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: var(--clay); border-radius: 99px; padding: 6px 16px 6px 6px;
+  font-size: .85rem; font-weight: 600; color: var(--brick-dark);
+}
+.mascot-badge img {
+  width: 34px; height: 34px; object-fit: cover; object-position: top;
+  border-radius: 50%;
 }
 
 /* ---------- Forme ---------- */
