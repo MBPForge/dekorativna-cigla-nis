@@ -40,10 +40,14 @@
     opacity: 0.85,
     texScale: 1,
     ba: 100,                 // before/after (100 = pun prikaz)
+    smart: true,             // pametna četkica: boji samo piksele slične boji zida
     photo: null,
     quad: null,              // [{x,y}×4] TL,TR,BR,BL
-    dragIdx: -1
+    dragIdx: -1,
+    refColor: null           // boja zida uzorkovana na početku poteza
   };
+  var photoData = null;      // pikseli fotografije (za pametnu četkicu / štapić)
+  var gradMap = null;        // mapa ivica (za štapić koji staje na ivicama objekata)
 
   var canvas = document.getElementById('studio-canvas');
   if (!canvas) return;
@@ -236,11 +240,13 @@
     brickLayer.width = w; brickLayer.height = h;
     var bg = brickLayer.getContext('2d');
 
-    var tileImg = tex ? tex.tile : buildTile(state.model, state.fuga.color, state.fugaMm, 0.5);
-    var texW = tex ? tex.img.width : tileImg.width;
+    var useTex = state.render === 'real' && tex;
+    var tileImg = useTex ? tex.tile : buildTile(state.model, state.fuga.color, state.fugaMm, 0.5);
+    var texW = useTex ? tex.img.width : tileImg.width;
+    var texM = useTex ? state.model.texMeters : 0.5; // šematski tile = 2 cigle ≈ 0,5 m
     // fizička kalibracija: pretpostavljamo da fotografija prikazuje ~4 m širine prizora
     var pxPerM2 = w / PHOTO_WALL_M;
-    var baseScale = pxPerM2 * state.model.texMeters / texW * state.texScale;
+    var baseScale = pxPerM2 * texM / texW * state.texScale;
 
     if (state.quad && state.quad.length === 4) {
       var q = state.quad;
@@ -318,6 +324,26 @@
     maskCtx = mask.getContext('2d');
     maskCtx.clearRect(0, 0, cw, ch);
     undoStack = []; redoStack = []; updateUndoButtons();
+    // keširaj piksele i mapu ivica za pametne alate
+    photoData = null; gradMap = null;
+    try {
+      var ref = document.createElement('canvas');
+      ref.width = cw; ref.height = ch;
+      var rg = ref.getContext('2d');
+      rg.drawImage(img, 0, 0, cw, ch);
+      photoData = rg.getImageData(0, 0, cw, ch).data;
+      gradMap = new Uint8Array(cw * ch);
+      for (var y = 0; y < ch - 1; y++) {
+        for (var x = 0; x < cw - 1; x++) {
+          var i = (y * cw + x) * 4;
+          var l = photoData[i] * 0.3 + photoData[i + 1] * 0.59 + photoData[i + 2] * 0.11;
+          var ir = i + 4, id = i + cw * 4;
+          var lr = photoData[ir] * 0.3 + photoData[ir + 1] * 0.59 + photoData[ir + 2] * 0.11;
+          var ld = photoData[id] * 0.3 + photoData[id + 1] * 0.59 + photoData[id + 2] * 0.11;
+          gradMap[y * cw + x] = Math.min(255, Math.abs(l - lr) + Math.abs(l - ld));
+        }
+      }
+    } catch (e) { /* CORS i sl. — alati rade bez pameti */ }
     drawPhoto();
   }
   function loadPhoto(file) {
@@ -376,12 +402,14 @@
     var out = maskCtx.getImageData(0, 0, w, h);
     var stack = [py * w + px];
     visited[py * w + px] = 1;
+    var EDGE = 30; // štapić ne prelazi preko izraženih ivica (granica zida i objekata)
     while (stack.length) {
       var idx = stack.pop();
       var x = idx % w, y = (idx / w) | 0;
       var di = idx * 4;
       var dr = data[di] - r0, dg = data[di + 1] - g0, db = data[di + 2] - b0;
       if (dr * dr + dg * dg + db * db > tol) continue;
+      if (gradMap && gradMap[idx] > EDGE) continue;
       out.data[di] = 255; out.data[di + 1] = 255; out.data[di + 2] = 255; out.data[di + 3] = 255;
       if (x > 0 && !visited[idx - 1]) { visited[idx - 1] = 1; stack.push(idx - 1); }
       if (x < w - 1 && !visited[idx + 1]) { visited[idx + 1] = 1; stack.push(idx + 1); }
@@ -415,7 +443,33 @@
     return { x: cx * canvas.width / r.width, y: cy * canvas.height / r.height };
   }
   function paint(p) {
-    maskCtx.globalCompositeOperation = state.tool === 'erase' ? 'destination-out' : 'source-over';
+    var erase = state.tool === 'erase';
+    // Pametna četkica: boji samo piksele slične boji zida na kojoj je potez počeo,
+    // pa cigla ne prelazi preko nameštaja, biljaka i drugih objekata.
+    if (!erase && state.smart && photoData && state.refColor) {
+      var w = mask.width, h = mask.height, R = state.brush;
+      var x0 = Math.max(0, Math.round(p.x - R)), y0 = Math.max(0, Math.round(p.y - R));
+      var x1 = Math.min(w - 1, Math.round(p.x + R)), y1 = Math.min(h - 1, Math.round(p.y + R));
+      if (x1 <= x0 || y1 <= y0) return;
+      var region = maskCtx.getImageData(x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+      var rd = region.data, rw = x1 - x0 + 1;
+      var tol = state.tolerance * state.tolerance * 3;
+      var rc = state.refColor;
+      for (var y = y0; y <= y1; y++) {
+        for (var x = x0; x <= x1; x++) {
+          var dx = x - p.x, dy = y - p.y;
+          if (dx * dx + dy * dy > R * R) continue;
+          var pi = (y * w + x) * 4;
+          var dr = photoData[pi] - rc[0], dg = photoData[pi + 1] - rc[1], db = photoData[pi + 2] - rc[2];
+          if (dr * dr + dg * dg + db * db > tol) continue;
+          var ri = ((y - y0) * rw + (x - x0)) * 4;
+          rd[ri] = 255; rd[ri + 1] = 255; rd[ri + 2] = 255; rd[ri + 3] = 255;
+        }
+      }
+      maskCtx.putImageData(region, x0, y0);
+      return;
+    }
+    maskCtx.globalCompositeOperation = erase ? 'destination-out' : 'source-over';
     maskCtx.fillStyle = '#fff';
     maskCtx.beginPath();
     maskCtx.arc(p.x, p.y, state.brush, 0, Math.PI * 2);
@@ -440,6 +494,11 @@
       return;
     }
     if (state.tool === 'wand') { snapshot(); wand(p.x, p.y); drawPhoto(); return; }
+    // uzorkuj boju zida na početku poteza (za pametnu četkicu)
+    if (photoData) {
+      var si = (Math.round(p.y) * mask.width + Math.round(p.x)) * 4;
+      state.refColor = [photoData[si], photoData[si + 1], photoData[si + 2]];
+    }
     snapshot(); painting = true; paint(p); drawPhoto();
   });
   canvas.addEventListener('pointermove', function (e) {
@@ -487,6 +546,14 @@
   });
   el('model-name').textContent = 'Izabrano: ' + MODELS[0].name + ' — oko ' + MODELS[0].price.toLocaleString('sr-RS') + ' RSD/m²';
 
+  // Podešavanje fuge ima smisla samo u šematskom prikazu — čim korisnik pipne fugu,
+  // prebacujemo prikaz na šematski da ODMAH vidi promenu.
+  function ensureSchematic() {
+    if (state.render === 'schematic') return;
+    var radio = document.querySelector('input[name="render-mode"][value="schematic"]');
+    if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change')); }
+  }
+
   var fugaRow = el('fuga-swatches');
   FUGAS.forEach(function (f, i) {
     var b = document.createElement('button');
@@ -497,6 +564,7 @@
       state.fuga = f;
       fugaRow.querySelectorAll('.swatch').forEach(function (s) { s.classList.remove('selected'); });
       b.classList.add('selected');
+      ensureSchematic();
       redraw();
     });
     fugaRow.appendChild(b);
@@ -517,8 +585,10 @@
   el('fuga-w').addEventListener('input', function (e) {
     state.fugaMm = parseInt(e.target.value, 10);
     el('fuga-w-val').textContent = state.fugaMm;
+    ensureSchematic();
     redraw();
   });
+  el('smart-brush').addEventListener('change', function (e) { state.smart = e.target.checked; });
   el('brush-size').addEventListener('input', function (e) {
     state.brush = parseInt(e.target.value, 10);
     el('brush-size-val').textContent = state.brush;
@@ -558,7 +628,8 @@
     ['brush-mode', 'erase-mode', 'wand-mode', 'corners-mode'].forEach(function (id) {
       el(id).className = 'btn ' + ((id.indexOf(t) === 0) ? 'btn-dark' : 'btn-light-outline');
     });
-    el('tolerance-wrap').style.display = t === 'wand' ? '' : 'none';
+    el('tolerance-wrap').style.display = (t === 'wand' || t === 'brush') ? '' : 'none';
+    el('smart-wrap').style.display = t === 'brush' ? '' : 'none';
     el('corners-help').style.display = t === 'corners' ? '' : 'none';
     drawPhoto();
   }
@@ -596,7 +667,6 @@
     tabPhoto.classList.toggle('active', m === 'photo');
     el('panel-photo').style.display = m === 'photo' ? '' : 'none';
     el('panel-dims').style.display = m === 'wall' ? '' : 'none';
-    el('panel-render').style.display = m === 'wall' ? '' : 'none';
     el('ba-wrap').style.display = m === 'photo' ? '' : 'none';
     redraw();
   }

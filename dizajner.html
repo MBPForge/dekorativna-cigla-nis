@@ -130,8 +130,14 @@
             Kliknite 4 ugla zida redom: gore-levo, gore-desno, dole-desno, dole-levo — cigla će pratiti perspektivu zida.
             Prevucite tačke da ih doterate. <button class="btn btn-light-outline" id="reset-corners" type="button" style="padding:4px 10px; font-size:.78rem;">Poništi uglove</button>
           </p>
+          <div class="control" id="smart-wrap">
+            <label style="font-weight:400; display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="smart-brush" checked>
+              Pametna četkica — boji samo zid, preskače nameštaj i objekte
+            </label>
+          </div>
           <div class="control" id="tolerance-wrap" style="display:none;">
-            <label for="tolerance">Osetljivost štapića: <span id="tolerance-val">32</span></label>
+            <label for="tolerance">Osetljivost (štapić i pametna četkica): <span id="tolerance-val">32</span></label>
             <input type="range" id="tolerance" min="8" max="80" step="2" value="32">
           </div>
           <div class="control">
