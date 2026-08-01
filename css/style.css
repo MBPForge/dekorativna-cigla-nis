@@ -450,7 +450,44 @@ article.post li { margin-bottom: 6px; }
 .lightbox .lb-note { color: #a08d80; font-size: .78rem; margin-top: 6px; }
 .lightbox .lb-close {
   position: absolute; top: 18px; right: 22px; background: none; border: none;
-  color: #fff; font-size: 2rem; cursor: pointer; line-height: 1;
+  color: #fff; font-size: 2rem; cursor: pointer; line-height: 1; z-index: 2;
+}
+.lightbox .lb-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.35);
+  color: #fff; font-size: 2rem; line-height: 1; width: 52px; height: 52px;
+  border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+  transition: background .15s;
+}
+.lightbox .lb-nav:hover { background: rgba(179,86,46,.85); }
+.lightbox .lb-prev { left: 18px; }
+.lightbox .lb-next { right: 18px; }
+.lightbox .lb-counter {
+  color: #e8d9cb; font-size: .82rem; letter-spacing: .05em; margin-bottom: 10px;
+  font-weight: 600;
+}
+.lightbox .lb-thumbs {
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px;
+}
+.lightbox .lb-thumb {
+  width: 62px; height: 44px; border-radius: 7px; border: 2px solid transparent;
+  background-size: cover; background-position: center; cursor: pointer; padding: 0;
+  opacity: .55; transition: opacity .15s, border-color .15s;
+}
+.lightbox .lb-thumb:hover { opacity: .85; }
+.lightbox .lb-thumb.active { opacity: 1; border-color: var(--brick-light); }
+@media (max-width: 640px) {
+  .lightbox .lb-nav { width: 42px; height: 42px; font-size: 1.6rem; }
+  .lightbox .lb-prev { left: 6px; } .lightbox .lb-next { right: 6px; }
+}
+
+/* Kartica sa više slika (galerija) */
+.card-media { position: relative; }
+.gallery-badge {
+  position: absolute; top: 10px; right: 10px; z-index: 1;
+  background: rgba(24,17,13,.72); color: #fff; font-size: .74rem; font-weight: 600;
+  padding: 4px 9px; border-radius: 99px; display: flex; align-items: center; gap: 4px;
+  pointer-events: none;
 }
 .card-peek {
   display: inline-block; margin-top: 10px; font-size: .85rem; font-weight: 600;
