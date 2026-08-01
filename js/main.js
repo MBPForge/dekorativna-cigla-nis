@@ -32,4 +32,19 @@
   // Godina u podnožju
   var y = document.getElementById('year');
   if (y) y.textContent = new Date().getFullYear();
+
+  // Kontakt forma: na hostingu bez form-backenda (npr. Vercel) šaljemo upit mejlom
+  var form = document.querySelector('form[name="kontakt"]');
+  if (form && location.hostname.indexOf('netlify') === -1) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = function (n) { return (form.elements[n] && form.elements[n].value || '').trim(); };
+      var body = 'Ime: ' + v('ime') + '\nFirma: ' + v('firma') + '\nEmail: ' + v('email') +
+        '\nTelefon: ' + v('telefon') + '\nJavljam se kao: ' + v('tip') + '\n\n' + v('poruka');
+      location.href = 'mailto:info@dekorativnacigla.rs' +
+        '?subject=' + encodeURIComponent('Upit sa sajta — ' + v('tip')) +
+        '&body=' + encodeURIComponent(body);
+      setTimeout(function () { location.href = 'hvala.html'; }, 800);
+    });
+  }
 })();
