@@ -98,8 +98,13 @@ a:hover { color: var(--brick-dark); }
   color: #fff;
 }
 .hero-pattern { position: absolute; inset: 0; opacity: .16; }
+.hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+.hero-overlay {
+  position: absolute; inset: 0; z-index: 1;
+  background: linear-gradient(100deg, rgba(18,12,9,.86) 0%, rgba(28,19,14,.62) 40%, rgba(28,19,14,.20) 72%, rgba(28,19,14,.06) 100%);
+}
 .hero-inner {
-  position: relative; max-width: 1180px; margin: 0 auto;
+  position: relative; z-index: 2; max-width: 1180px; margin: 0 auto;
   padding: 96px 24px 104px; text-align: left;
 }
 .hero .eyebrow {
